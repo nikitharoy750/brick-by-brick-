@@ -47,18 +47,18 @@ For Software:
 For Software:
 
 # Screenshots (Add at least 3)
-![Screenshot1](<img width="353" height="646" alt="Screenshot 2026-09-12 at 9 58 28 AM" src="https://github.com/user-attachments/assets/feb3ef72-7ebb-46a8-a866-c9b349775721" />
-)
+<img width="353" height="646" alt="Screenshot 2026-09-12 at 9 58 28 AM" src="https://github.com/user-attachments/assets/feb3ef72-7ebb-46a8-a866-c9b349775721" />
+
 - This section allows users to **customize their digital brick** before adding it to their collection. They can preview the brick, choose from different colours, adjust its size using the slider, and save their design. The Save Brick Design button stores the selected colour and size so the customized brick can be used in the project.
 
 
-![Screenshot2](<img width="2184" height="1018" alt="image" src="https://github.com/user-attachments/assets/4b0df4f3-1685-4eff-8b3c-cf33b87397c8" />
-)
+<img width="2184" height="1018" alt="image" src="https://github.com/user-attachments/assets/4b0df4f3-1685-4eff-8b3c-cf33b87397c8" />
+
 - This is the Reel link to Digital Brick collection section. Users paste an Instagram Reel link and select the concepts that describe the Reel, such as Animals, Cinematic, Romance, Gaming, or Meme. Clicking Add Brick adds that Reel as a customized digital brick to the user's inventory. The inventory on the right keeps track of the number of bricks collected and displays algorithm-related statistics such as Structural Integrity, Mental Stability, Algorithmic Potential, and Useful Content. As more Reels are added, these bricks represent the user's Instagram algorithm and will later be analyzed by Gemini to generate their algorithm personality and roast.
 
 
-![Screenshot3](<img width="2146" height="1650" alt="image" src="https://github.com/user-attachments/assets/ae141ad4-7b56-45f6-a95b-e753019131a5" />
-)
+<img width="2146" height="1650" alt="image" src="https://github.com/user-attachments/assets/ae141ad4-7b56-45f6-a95b-e753019131a5" />
+
 - This is the Brick Wall and Algorithm Analysis section. It shows all the bricks the user has collected from their Reels and displays each Reel with its selected concept. The Build My Algorithm button sends the collected Reel concepts to the AI for analysis. The AI then identifies the user's algorithm personality, generates scores such as Delusion, Brainrot, Main Character Energy, and Useful Content, and produces a humorous Manglish roast. It also highlights the Top Brick Combination, showing which combination of Reel concepts best represents the user's algorithm.
 
 
