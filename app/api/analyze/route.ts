@@ -1,5 +1,7 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import { NextResponse } from "next/server";
+
+const model = process.env.GEMINI_MODEL || "gemini-3.6-flash";
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
@@ -30,84 +32,109 @@ export async function POST(request: Request) {
     }
 
     const prompt = `
-You are the AI behind a humorous website called "Brick by Brick".
+You are the AI behind a fun website called "Brick by Brick".
 
-The website analyzes someone's Instagram Reel habits
-and turns them into a ridiculous fictional algorithm personality.
+The website analyzes a user's Instagram Reel collection and determines
+what kind of algorithmic personality their feed has.
 
-The user's selected Reel concepts are:
+Analyze the ENTIRE collection together.
 
-${concepts.join(", ")}
+Do not analyze each concept in isolation.
+Look for combinations, patterns, contradictions, and recurring themes.
 
-Caption:
-${caption || "No caption supplied"}
+The tone should be:
+- funny
+- highly sarcastic
+- playful
+- internet-native
+- specific to the provided content
+- natural Malayalam + English (Manglish) when writing the roast
 
-Hashtags:
-${hashtags.length ? hashtags.join(", ") : "No hashtags supplied"}
+Do NOT be hateful, discriminatory, threatening, or genuinely insulting.
+The roast should feel like a friend making fun of someone's Instagram
+algorithm.
 
-Analyze the concepts together and roast the user's Instagram algorithm.
+USER'S SELECTED CONCEPTS:
+${JSON.stringify(concepts)}
 
-The roast should:
-- Be extremely sarcastic
-- Be funny and playful
-- Use natural Malayalam/Manglish
-- Sound like a friend roasting them
-- Mix Malayalam and English naturally
-- Reference the combination of concepts
-- Avoid genuinely hateful or abusive content
+USER'S REEL CAPTION:
+${caption || "No caption provided"}
 
-Return:
-1. A ridiculous algorithm personality name
-2. A short description
-3. A sarcastic Malayalam/Manglish roast
-4. The funniest combination of concepts
-5. Four scores from 0 to 100:
-   - delusion
-   - brainrot
-   - mainCharacter
-   - usefulContent
+USER'S REEL HASHTAGS:
+${JSON.stringify(hashtags)}
 
-Return JSON only.
+Generate:
+
+1. personality
+A short funny name for this person's algorithm personality.
+
+2. description
+A short explanation of what their algorithm says about them.
+
+3. roast
+A sarcastic Malayalam/Manglish roast based specifically on the
+combination of concepts, caption, and hashtags.
+
+4. topCombination
+The most interesting combination of concepts you detected.
+
+5. delusion
+A score from 0 to 100 representing how delusional the algorithm is.
+
+6. brainrot
+A score from 0 to 100 representing how brainrotted the algorithm is.
+
+7. mainCharacter
+A score from 0 to 100 representing how much main-character energy
+the algorithm has.
+
+8. usefulContent
+A score from 0 to 100 representing how useful the overall content is.
+
+Be creative, but base the result on the provided data.
 `;
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.8-flash",
-
+      model,
       contents: prompt,
-
       config: {
         responseMimeType: "application/json",
-
         responseSchema: {
-          type: "object",
-
+          type: Type.OBJECT,
           properties: {
             personality: {
-              type: "string",
+              type: Type.STRING,
+              description: "Funny name for the user's algorithm personality.",
             },
             description: {
-              type: "string",
+              type: Type.STRING,
+              description: "Short explanation of the algorithm personality.",
             },
             roast: {
-              type: "string",
+              type: Type.STRING,
+              description: "Funny sarcastic Malayalam/Manglish roast.",
             },
             topCombination: {
-              type: "string",
+              type: Type.STRING,
+              description: "Most interesting combination of concepts.",
             },
             delusion: {
-              type: "integer",
+              type: Type.NUMBER,
+              description: "Delusion score from 0 to 100.",
             },
             brainrot: {
-              type: "integer",
+              type: Type.NUMBER,
+              description: "Brainrot score from 0 to 100.",
             },
             mainCharacter: {
-              type: "integer",
+              type: Type.NUMBER,
+              description: "Main character score from 0 to 100.",
             },
             usefulContent: {
-              type: "integer",
+              type: Type.NUMBER,
+              description: "Useful content score from 0 to 100.",
             },
           },
-
           required: [
             "personality",
             "description",
@@ -129,12 +156,13 @@ Return JSON only.
     const result = JSON.parse(response.text);
 
     return NextResponse.json(result);
-
   } catch (error) {
-    console.error("Gemini analysis error:", error);
+    console.error("Gemini API error:", error);
 
     return NextResponse.json(
-      { error: "Failed to analyze the algorithm." },
+      {
+        error: "Failed to analyze the reels.",
+      },
       { status: 500 }
     );
   }

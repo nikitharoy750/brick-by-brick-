@@ -337,17 +337,24 @@ export default function Home() {
     }, 1500);
 
     try {
+      const concepts = [
+        ...new Set(
+          bricks.flatMap((brick) => [
+            ...brick.concepts,
+            ...(brick.customConcept?.trim() ? [brick.customConcept.trim()] : []),
+          ])
+        ),
+      ];
+
       const response = await fetch("/api/analyze", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          bricks,
-          reelUrl,
+          concepts,
           caption: "",
           hashtags: [],
-          audioTranscript: "",
         }),
       });
 
