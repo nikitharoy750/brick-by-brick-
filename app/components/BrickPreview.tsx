@@ -1,99 +1,121 @@
-"use client";
+import { motion } from "framer-motion";
 
 type BrickPreviewProps = {
   colour: string;
   size: number;
-  finish: string;
 };
 
 export default function BrickPreview({
   colour,
   size,
-  finish,
 }: BrickPreviewProps) {
-  /*
-   * The page sends:
-   * Small  = 0.8
-   * Medium = 1
-   * Large  = 1.2
-   *
-   * Use the number directly as a scale so all three sizes
-   * stay proportional instead of treating 0.8/1.2 as unknown sizes.
-   */
-
   const width = 180 * size;
   const height = 75 * size;
 
-  const texture =
-    finish === "Rough"
-      ? {
-          backgroundImage: `
-            radial-gradient(circle at 20% 30%, rgba(0,0,0,0.08) 1px, transparent 1px),
-            radial-gradient(circle at 70% 60%, rgba(0,0,0,0.06) 1px, transparent 1px)
-          `,
-          backgroundSize: "12px 12px, 17px 17px",
-        }
-      : finish === "Textured"
-        ? {
-            backgroundImage: `
-              linear-gradient(
-                135deg,
-                rgba(255,255,255,0.12) 25%,
-                transparent 25%,
-                transparent 50%,
-                rgba(0,0,0,0.06) 50%,
-                rgba(0,0,0,0.06) 75%,
-                transparent 75%
-              )
-            `,
-            backgroundSize: "18px 18px",
-          }
-        : {};
+  const outline = "#3A2525";
 
   return (
-    <div
-      className="relative shrink-0 m-0 p-0"
-      style={{
-        width: `${width}px`,
-        height: `${height}px`,
+    <motion.div
+      initial={{ scale: 1, y: 0 }}
+      whileHover={{
+        scale: 1.05,
+        y: -3,
       }}
+      transition={{
+        type: "spring",
+        stiffness: 350,
+        damping: 18,
+      }}
+      style={{
+        width,
+        height,
+        position: "relative",
+        flexShrink: 0,
+      }}
+      className="select-none"
     >
-      {/* Shadow */}
-      <div
-        className="absolute rounded-full bg-black/10 blur-md"
-        style={{
-          left: `${8 * size}%`,
-          bottom: `${-4 * size}px`,
-          width: `${84 * size}%`,
-          height: `${5 * size}px`,
-        }}
-      />
-
-      {/* Brick */}
-      <div
-        className="absolute inset-0 overflow-hidden rounded-[14px] border-2 border-black/10 shadow-[8px_9px_0_rgba(0,0,0,0.12)]"
-        style={{
-          backgroundColor: colour || "#F26B6B",
-          ...texture,
-        }}
+      <svg
+        width={width}
+        height={height}
+        viewBox="0 0 180 75"
+        role="img"
+        aria-label="Pixel art brick"
+        className="block"
       >
-        {/* Top highlight */}
-        <div className="absolute inset-x-0 top-0 h-[38%] bg-white/10" />
-
-        {/* Main highlight */}
-        <div
-          className="absolute rounded-full bg-white/20"
-          style={{
-            left: `${16 * size}px`,
-            top: `${10 * size}px`,
-            width: `${70 * size}px`,
-            height: `${8 * size}px`,
-          }}
+        {/* Pixel shadow */}
+        <path
+          d="M14 68h145v5H22z"
+          fill="#000000"
+          opacity="0.12"
         />
 
-        {/* Bottom shading */}
-        <div className="absolute inset-x-0 bottom-0 h-[28%] bg-black/10" />
-      </div>
-    </div>
+        {/* Thick pixel outline */}
+        <path
+          d="
+            M16 7
+            H166
+            V12
+            H174
+            V62
+            H166
+            V68
+            H16
+            V63
+            H9
+            V14
+            H16
+            Z
+          "
+          fill={outline}
+        />
+
+        {/* Main brick */}
+        <path
+          d="
+            M18 12
+            H162
+            V17
+            H169
+            V57
+            H162
+            V63
+            H18
+            V58
+            H14
+            V17
+            H18
+            Z
+          "
+          fill={colour}
+        />
+
+        {/* Fixed light pixel shading */}
+        <path
+          d="
+            M18 12 H162 V19 H154 V24 H28 V20 H18 Z
+            M28 25 H52 V30 H28 Z
+            M112 20 H142 V25 H112 Z
+            M65 33 H76 V38 H65 Z
+            M145 31 H160 V36 H145 Z
+          "
+          fill="#FFFFFF"
+          opacity="0.16"
+        />
+
+        {/* Fixed darker pixel shading */}
+        <path
+          d="
+            M14 42 H34 V47 H58 V53 H48 V58 H18 V54 H14 Z
+            M58 48 H70 V55 H58 Z
+            M74 43 H102 V48 H95 V53 H83 V58 H68 V52 H74 Z
+            M96 52 H112 V62 H96 Z
+            M132 40 H169 V56 H161 V62 H138 V56 H132 Z
+            M151 48 H169 V57 H151 Z
+          "
+          fill={outline}
+          opacity="0.20"
+        />
+      </svg>
+    </motion.div>
   );
 }

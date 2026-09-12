@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import BrickPreview from "./components/BrickPreview";
 import OpeningAnimation from "./components/OpeningAnimation";
@@ -49,8 +49,18 @@ type Brick = {
   concepts: string[];
   customConcept?: string;
   colour: string;
-  finish: string;
   size: number;
+};
+
+type AlgorithmResult = {
+  personality: string;
+  description: string;
+  roast: string;
+  topCombination: string;
+  delusionScore: number;
+  brainrotScore: number;
+  mainCharacterScore: number;
+  usefulScore: number;
 };
 
 function getAlgorithmResult(bricks: Brick[]) {
@@ -183,7 +193,7 @@ function getAlgorithmResult(bricks: Brick[]) {
 }
 
 export default function Home() {
-  const [showIntro, setShowIntro] = useState(false);
+  const [showIntro, setShowIntro] = useState(true);
   const [bricks, setBricks] = useState<Brick[]>([]);
 
   const [reelUrl, setReelUrl] = useState("");
@@ -191,13 +201,14 @@ export default function Home() {
   const [customConcept, setCustomConcept] = useState("");
 
   const [selectedColour, setSelectedColour] = useState("#F26B6B");
-  const [selectedFinish, setSelectedFinish] = useState("Smooth");
   const [selectedSize, setSelectedSize] = useState(1);
 
   const [isBuilding, setIsBuilding] = useState(false);
   const [analysisStarted, setAnalysisStarted] = useState(false);
   const [analysisStep, setAnalysisStep] = useState(0);
   const [showResult, setShowResult] = useState(false);
+  const [algorithmResult, setAlgorithmResult] = useState<AlgorithmResult | null>(null);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [deletingBrickId, setDeletingBrickId] = useState<number | null>(null);
 
   // ADD BRICK animation states
@@ -228,8 +239,6 @@ export default function Home() {
   const buildSectionRef = useRef<HTMLElement | null>(null);
   const wallSectionRef = useRef<HTMLDivElement | null>(null);
   const aboutSectionRef = useRef<HTMLDivElement | null>(null);
-
-  const algorithmResult = getAlgorithmResult(bricks);
 
   function scrollToSection(
     sectionRef: React.RefObject<HTMLElement | null>
@@ -269,7 +278,6 @@ export default function Home() {
         ? customConcept.trim()
         : "",
       colour: selectedColour,
-      finish: selectedFinish,
       size: selectedSize,
     };
 
@@ -312,26 +320,79 @@ export default function Home() {
     }, 650);
   }
 
-  function buildAlgorithm() {
-    if (bricks.length === 0) return;
+  async function buildAlgorithm() {
+    if (bricks.length === 0 || isBuilding) return;
 
     setAnalysisStarted(true);
     setShowResult(false);
+    setAnalysisError(null);
+    setAlgorithmResult(null);
     setIsBuilding(true);
     setAnalysisStep(1);
 
-    // Reveal one analysis message every 3 seconds.
-    for (let step = 2; step <= 6; step++) {
-      setTimeout(() => {
-        setAnalysisStep(step);
-      }, (step - 1) * 3000);
-    }
+    const startedAt = Date.now();
 
-    // Finish the analysis after 18 seconds.
-    setTimeout(() => {
+    const stepTimer = window.setInterval(() => {
+      setAnalysisStep((currentStep) => Math.min(currentStep + 1, 6));
+    }, 1500);
+
+    try {
+      const response = await fetch("/api/analyze", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          bricks,
+          reelUrl,
+          caption: "",
+          hashtags: [],
+          audioTranscript: "",
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to analyze the algorithm.");
+      }
+
+      const result: AlgorithmResult = {
+        personality: data.personality,
+        description: data.description,
+        roast: data.roast,
+        topCombination: data.topCombination,
+        delusionScore: Number(data.delusion),
+        brainrotScore: Number(data.brainrot),
+        mainCharacterScore: Number(data.mainCharacter),
+        usefulScore: Number(data.usefulContent),
+      };
+
+      setAlgorithmResult(result);
+
+      // Keep the loading screen visible long enough to show the full sequence.
+      const elapsed = Date.now() - startedAt;
+      const minimumLoadingTime = 9000;
+      const remainingTime = Math.max(0, minimumLoadingTime - elapsed);
+
+      if (remainingTime > 0) {
+        await new Promise((resolve) => setTimeout(resolve, remainingTime));
+      }
+
+      setAnalysisStep(6);
       setIsBuilding(false);
       setShowResult(true);
-    }, 18000);
+    } catch (error) {
+      console.error("Algorithm analysis error:", error);
+      setAnalysisError(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong while analyzing your bricks."
+      );
+      setIsBuilding(false);
+    } finally {
+      window.clearInterval(stepTimer);
+    }
   }
 
   return (
@@ -345,7 +406,7 @@ export default function Home() {
       </AnimatePresence>
 
 
-      <main className="min-h-screen bg-[#F5F1EA] text-[#252525]">
+      <main className="min-h-screen bg-transparent text-[#252525]">
 
       {/* ================= NAVBAR ================= */}
 
@@ -433,7 +494,6 @@ export default function Home() {
             <BrickPreview
               colour={selectedColour}
               size={selectedSize}
-              finish={selectedFinish}
             />
           </div>
 
@@ -461,37 +521,6 @@ export default function Home() {
                   }`}
                   style={{ backgroundColor: colour.value }}
                 />
-
-              ))}
-
-            </div>
-
-          </div>
-
-
-          {/* Finish */}
-
-          <div className="mt-7">
-
-            <h3 className="text-sm font-bold">
-              BRICK FINISH
-            </h3>
-
-            <div className="mt-3 grid grid-cols-3 gap-2">
-
-              {["Smooth", "Rough", "Textured"].map((finish) => (
-
-                <button
-                  key={finish}
-                  onClick={() => setSelectedFinish(finish)}
-                  className={`rounded-xl border px-2 py-3 text-xs font-semibold transition ${
-                    selectedFinish === finish
-                      ? "border-[#252525] bg-[#252525] text-white"
-                      : "border-[#D9D1C5] bg-[#FFFDF9] text-[#55504A]"
-                  }`}
-                >
-                  {finish}
-                </button>
 
               ))}
 
@@ -580,8 +609,7 @@ export default function Home() {
                   <BrickPreview
                     colour={selectedColour}
                     size={1}
-                    finish={selectedFinish}
-                  />
+                        />
                   <motion.div
                     initial={{ opacity: 0, scale: 0.5 }}
                     animate={{ opacity: [0, 1, 0], scale: [0.5, 1.1, 1.3] }}
@@ -849,7 +877,6 @@ export default function Home() {
                                   <BrickPreview
                                     colour={brick.colour}
                                     size={1}
-                                    finish={brick.finish}
                                   />
 
                                   <AnimatePresence>
@@ -954,7 +981,6 @@ export default function Home() {
                       <BrickPreview
                         colour={brick.colour}
                         size={1}
-                        finish={brick.finish}
                       />
                     </div>
                   </div>
@@ -1162,6 +1188,12 @@ export default function Home() {
                 ANALYSING YOUR ALGORITHM...
               </h2>
 
+              {analysisError && (
+                <div className="mt-4 rounded-2xl bg-[#3A2525] p-4 text-xs font-bold text-[#FFB4B4]">
+                  {analysisError}
+                </div>
+              )}
+
               <div className="mt-5 min-h-[170px] space-y-3 text-xs leading-relaxed text-[#D6D6D6]">
 
                 {analysisStep >= 1 && (
@@ -1205,7 +1237,7 @@ export default function Home() {
             </motion.div>
           )}
 
-          {showResult && (
+          {showResult && algorithmResult && (
             <motion.div
               initial={{ opacity: 0, y: 35, scale: 0.94 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
